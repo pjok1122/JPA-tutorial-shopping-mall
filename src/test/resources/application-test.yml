@@ -1,0 +1,10 @@
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
+
+        
+app:
+  test:
+    here: here2
