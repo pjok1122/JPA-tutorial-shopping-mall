@@ -1,5 +1,6 @@
 package jpabook.jpashop.controller;
 
+import jpabook.jpashop.domain.Book;
 import lombok.Getter;
 
 import lombok.Setter;
@@ -10,7 +11,19 @@ public class BookForm {
 	private String name;
 	private int price;
 	private int stockQuantity;
-	
 	private String author;
 	private String isbn;
+
+	
+	public static BookForm createBookForm(Book item) {
+		BookForm form = new BookForm();
+		form.setId(item.getId());
+		form.setName(item.getName());
+		form.setPrice(item.getPrice());
+		form.setStockQuantity(item.getStockQuantity());
+		form.setAuthor(item.getAuthor());
+		form.setIsbn(item.getIsbn());
+		
+		return form;
+	}
 }
