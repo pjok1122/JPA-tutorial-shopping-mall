@@ -1,4 +1,4 @@
-# JPA 연습 프로젝트
+# JPA 연습 프로젝트 - SpringMVC, Thymeleaf, JPA
 
 ## 스프링부트 라이브러리 살펴보기
 
@@ -100,7 +100,7 @@ logging.level:
 
 - `EntityManager`는 `@PersistenceContext` 애노테이션을 붙이면 DI받을 수 있다. Spring boot에서는 `@Autowired`로도 주입받을 수 있도록 도와준다. 
 
-- 생성자 주입 방식은 `@Autowired`를 생략할 수 있으며, 변경 불가능한 안전한 객체를 사용할 수 있기 때문에 더 선호된다.
+- 생성자 주입 방식은 `@Autowired`를 생략할 수 있으며, 테스트 시에 Mock객체를 주입해서 테스트할 수 있다는 장점이 있다. `ex) MemberService 객체를 생성자로 주입받자.`
 
 - lombok을 사용할 경우 `@RequiredArgsConstructor`를 사용하면 `final`로 되어있는 빈을 자동으로 DI받는다.
 
@@ -458,3 +458,101 @@ void update(Item item) { //item: 파리미터로 넘어온 준영속 상태의 �
 
 <br><hr>
 
+# JPA 연습 프로젝트 - API 설계 및 성능 최적화
+
+## 회원 생성 API
+
+**V1. 회원 생성 API**
+
+```java
+@PostMapping("/api/v1/members")
+public CreateMemberResponse saveMemberV1(@RequestBody @Valid Member member) {
+	Long id = memberService.join(member);
+	return new CreateMemberResponse(id);
+} 
+
+@Data
+@AllArgsConstructor
+static class CreateMemberResponse {
+    private Long id;
+}
+```
+
+1. 이 API는 엔티티를 매개변수로 넘겨주고 있다. 프레젠테이션 계층에 대한 검증을 엔티티에서 처리하고 있기 때문에 엔티티 자체가 굉장히 복잡해질 수 있다. 가급적이면 프레젠테이션 계층의 로직을 엔티티와 분리해서 사용하는 것이 좋다. 엔티티는 여러 계층에서 사용하기 때문에 사소한 수정에도 많은 사이드 이펙트가 발생할 가능성이 있기 때문이다.
+
+2. 엔티티를 매개변수로 받을 경우 엔티티의 멤버변수가 바뀌거나 했을 때, API의 스펙자체가 바뀌어버릴 수 있다. 예를 들어, name이라는 필드가 username 이라는 필드명으로 바뀌었다면 API 스펙 자체를 변경해야 한다.
+
+3. API의 반환 타입도 별도의 객체로 정의해서 사용하는 것이 API의 스펙 변경에 대응하기가 쉽다. `CreateMemberResponse`는 `MemberApiController`에서만 사용하므로 내부 클래스로 정의해서 사용하는 것이 더 편리하고 정리하기 쉽다.
+
+<br>
+
+**V2. 회원생성 API**
+
+```java
+public MemberApiController{
+    
+    ...
+
+    @PostMapping("/api/v2/members")
+    public CreateMemberResponse saveMemberV2(@RequestBody @Valid CreateMemberRequest request) {
+        Member member = new Member();
+        member.setName(request.getName());
+        
+        Long id = memberService.join(member);
+        return new CreateMemberResponse(id);
+    }
+    
+    @Data
+    static class CreateMemberRequest{
+        @NotEmpty
+        private String name;
+    }
+    
+    @Data
+    @AllArgsConstructor
+    static class CreateMemberResponse {
+        private Long id;
+    }
+}
+```
+
+1. 이렇게 API 스펙에 맞추어 Request, Response 객체를 만들어두는 것이 좋다.
+
+2. DTO 객체를 만들어두면 프레젠테이션 계층에서 필요한 검증로직을 손쉽게 담을 수 있다.
+
+<br><hr>
+
+## 회원수정 API
+
+**V2. 회원수정 API**
+
+```java
+//Put은 같은 수정을 여러번 호출해도 변하지 않음.
+@PutMapping("/api/v2/members/{id}")
+public UpdateMemberResponse updateMemberV2(
+        @PathVariable("id") Long id,
+        @RequestBody @Valid UpdateMemberRequest request)
+{
+    memberService.update(id, request.getName());
+    Member findMember = memberService.findOne(id);
+    return new UpdateMemberResponse(findMember.getId(), findMember.getName());
+}
+
+@Data
+@AllArgsConstructor
+static class UpdateMemberResponse{
+    private Long id;
+    private String name;
+}
+
+@Data
+static class UpdateMemberRequest{
+    private String name;
+}
+```
+
+1. REST API를 설계할 때 URI는 자원을 표현하는 데에만 집중하고 행위는 HTTP METHOD를 통해 나타내야 한다. PUT은 리소스를 수정할 때 사용하는 METHOD이므로 PUT을 사용하자.
+
+2. 회원을 식별할 수 있는 식별자를 `PathVariable`로 받고, 변경하고자 하는 내용을 `UpdateMemberRequest` 라는 DTO 객체로 받고 있으며, `UpdateMemberResponse`라는 별도의 DTO 객체를 반환하는 것도 볼 수 있다. 이전 회원생성 API의 문제점을 잘 반영한 모습이다.
+
+3. `memberService.update()`는 영속성 컨텍스트를 통해 엔티티를 가져오고, 그 엔티티를 변경하여 `Dirty Checking`으로 값을 바꾸는 메서드다. 그렇다면 `Member` 엔티티를 보유하고 있을텐데 왜 `update()`의 return 타입을 `Member`로 하지않았을까? 그 덕분에 `Member`를 조회하는 작업을 2번 진행하고 있다. 이런 단점을 감안하고도 return 타입을 `void` 또는 `id`로 두는 이유는 **커맨드와 쿼리**를 철저하게 분리하기 위함이다. `update`의 리턴값이 `Member`라면 `update`가 마치 쿼리를 호출한 것처럼 동작하기 때문에 유지보수 측면에서 단점이 있다. 김영한 개발자님은 이런 규칙을 철저하게 따르고 계신다고 한다.

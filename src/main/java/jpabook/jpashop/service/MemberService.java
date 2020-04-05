@@ -49,4 +49,13 @@ public class MemberService {
 	public Member findOne(Long memberId) {
 		return memberRepository.findOne(memberId);
 	}
+
+	//영한님은 커맨드랑 쿼리를 철저하게 분리하는 스타일.
+	//update의 리턴타입으로 Member를 주면, 쿼리를 호출한 것처럼 됨.
+	//반환하더라도 id만 반환.
+	@Transactional
+	public void update(Long id, String name) {
+		Member member = memberRepository.findOne(id);
+		member.setName(name);
+	}
 }
