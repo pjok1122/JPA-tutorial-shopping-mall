@@ -520,6 +520,8 @@ public MemberApiController{
 
 2. DTO 객체를 만들어두면 프레젠테이션 계층에서 필요한 검증로직을 손쉽게 담을 수 있다.
 
+3. DTO로부터 엔티티를 생성하는 방법은 굉장히 다양하다. 만약 생성 로직이 정말 단순하다면 생성자를 사용하는 것이 좋고, 생성할 때 무언가 비즈니스 로직이 필요하거나 의미있는 메서드 명이 필요하다면 생성자용 static 메서드를 사용한다. 만약 파라미터가 너무 많거나 복잡하면 빌더를 사용한다. 상황에 따라 가장 적합한 방법을 선택하자.
+
 <br><hr>
 
 ## 회원수정 API
@@ -556,3 +558,63 @@ static class UpdateMemberRequest{
 2. 회원을 식별할 수 있는 식별자를 `PathVariable`로 받고, 변경하고자 하는 내용을 `UpdateMemberRequest` 라는 DTO 객체로 받고 있으며, `UpdateMemberResponse`라는 별도의 DTO 객체를 반환하는 것도 볼 수 있다. 이전 회원생성 API의 문제점을 잘 반영한 모습이다.
 
 3. `memberService.update()`는 영속성 컨텍스트를 통해 엔티티를 가져오고, 그 엔티티를 변경하여 `Dirty Checking`으로 값을 바꾸는 메서드다. 그렇다면 `Member` 엔티티를 보유하고 있을텐데 왜 `update()`의 return 타입을 `Member`로 하지않았을까? 그 덕분에 `Member`를 조회하는 작업을 2번 진행하고 있다. 이런 단점을 감안하고도 return 타입을 `void` 또는 `id`로 두는 이유는 **커맨드와 쿼리**를 철저하게 분리하기 위함이다. `update`의 리턴값이 `Member`라면 `update`가 마치 쿼리를 호출한 것처럼 동작하기 때문에 유지보수 측면에서 단점이 있다. 김영한 개발자님은 이런 규칙을 철저하게 따르고 계신다고 한다.
+
+4. 3번에서 각각의 `update()`와 `findOne()`의 트랜잭션이 다르기 때문에 서로 다른 영속성 컨텍스트를 사용한다고 배웠다. 그래서 우리는 조회 쿼리가 2번 발생할 것이라 예상하는 것이 당연하다. 하지만 로그를 확인해보면 조회 쿼리는 1번만 발생한다. 결론부터 말하자면 트랜잭션이 끝났음에도 불구하고 1차 캐시가 유지가 되고 있다. 그 이유에 대해서는 추후에 살펴볼 것이니 우선은 기억만 해두자!
+
+5. `updateDto`에 변경할 수 있는 모든 필드를 멤버 변수로 가지고 있다면, 이 중에 일부는 null 값을 가질 수 있다. 이때는 값이 있는 필드를 null로 업데이트하지 않게 매번 체크하면서 수행해야 한다.
+
+6. `memberService.update()`의 파라미터로 DTO를 넘겨줘도 되고, 각 필드변수를 넘겨줘도 된다. 필드변수를 하나씩 넘겨줬을 때의 장점은 재사용성이 높아진다는 것이고, DTO를 넘겨줬을 때의 장점은 매개변수가 많을 때 편리하다는 것이다. 따라서 `update` 필드가 많다면 DTO를 사용하고 그게 아니라면 매개변수를 사용하는 편이 좋지 않을까?
+
+<br><hr>
+
+## 회원 조회
+
+**V1. 회원조회 API**
+
+```java
+@GetMapping("/api/v1/members")
+public List<Member> membersV1(){
+    return memberService.findMembers();
+}
+```
+
+가장 단순한 조회 API이며, 문제점 또한 아주 많다.
+
+1. 먼저, 반환형에 `Member` 엔티티가 포함되어있으므로 엔티티의 정보가 그대로 노출되는 문제가 생긴다. `@JsonIgnore`를 이용해서 불필요한 데이터가 노출되지 않도록 설정할 수 있다. 이는 프레젠테이션 로직이 엔티티에 포함되는 문제도 있지만 더 심각한 문제가 있다. `A`라는 API에서는 필요로 하는 필드를 `B`라는 필드에서는 노출하지 말아야 한다면 어떡할까? 그냥 답이 없다. 따라서 반환형에 `Member`라는 엔티티를 노출하지말고 `Dto`를 만들어두는 것이 좋다.
+
+2. 엔티티를 그대로 사용하고 있기 때문에 엔티티의 필드명이 바뀌거나 한다면 API 스펙자체가 바뀌어야 하는 문제가 발생한다.
+
+3. 반환형 자체가 `List`이므로 Json으로 전달받았을 때에도, `[{}, {}, {}]`와 같은 형태로 전달된다. 따라서 API 요구사항이 바뀌어, 몇 개의 데이터가 조회했는지를 추가해야 한다고 해보자. 현재 `Generic`으로 `Member`만을 받고있기 때문에 데이터의 개수를 추가할 수 있는 공간이 없다. 따라서 우리는 `{ count : 5, data:[{},{}]}`와 같은 형태로 Json을 만드는 게 좋다.
+
+**V2. 회원조회 API**
+
+```java
+@GetMapping("/api/v2/members")
+public Result memberV2() {
+    //자바8 스펙.
+    List<Member> findMembers = memberService.findMembers();
+    List<MemberDto> collect = findMembers.stream()
+                .map(m -> new MemberDto(m.getName()))
+                .collect(Collectors.toList());
+    
+    return new Result(collect.size(), collect);
+}
+
+//T타입을 써야 확장성이 좋다고 함.
+@Data
+@AllArgsConstructor
+static class Result<T>{
+    private int count;
+    private T data;
+}
+
+@Data
+@AllArgsConstructor
+static class MemberDto {
+    private String name;
+}
+```
+
+1. 영속성 컨텍스트로부터 조회해온 `Member` 엔티티를 `MemberDto`로 변환하고 있는 모습을 볼 수 있다. `Member`엔티티를 `MemberDto`로 변환할 때, `자바8` 의 stream을 이용하면 다소 편하게 구현이 가능하다.
+
+2. 리턴타입을 정의할 때 `Result<T>`를 이용하자.
