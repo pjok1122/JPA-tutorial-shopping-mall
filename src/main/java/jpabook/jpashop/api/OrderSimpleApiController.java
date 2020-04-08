@@ -8,12 +8,13 @@ import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jpabook.jpashop.api.OrderSimpleApiController.SimpleOrderDto;
 import jpabook.jpashop.domain.Address;
 import jpabook.jpashop.domain.Order;
 import jpabook.jpashop.domain.OrderSearch;
 import jpabook.jpashop.domain.OrderStatus;
 import jpabook.jpashop.repository.OrderRepository;
+import jpabook.jpashop.repository.order.simplequery.OrderSimpleQueryDto;
+import jpabook.jpashop.repository.order.simplequery.OrderSimpleQueryRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -31,45 +32,62 @@ import lombok.RequiredArgsConstructor;
 public class OrderSimpleApiController {
 	
 	private final OrderRepository orderRepository;
+	private final OrderSimpleQueryRepository orderSimpleQueryRepository;
 	
-	//1.  Order -> Member -> Order -> Member 무한루프에 빠진다.
-	//양방향이 걸리는 곳은 @JsonIgnore로 방지해야함.
-	//2. 고치고 나서도 또 다른 에러가 발생하게 됨. org.hibernate.proxy.pojo.bytebuddy...
-	//하이버네이트는 지연로딩일 때, member = new ByteBuddyInterceptor() 가 대신 들어가있음.
-	//Jackson 라이브러리는 ByteBuddyInterceptor라는 애를 어떻게 처리해야 할지 알지 못함. 그래서 오류 발생.
-	//hibernate5Module을 사용해서 초기화 되지 않은 프록시는 노출하지 않도록 설정하자.
-	//Json 생성할 때, Lazy Loading해서 가져오도록 설정할 수도 있음.
-	//성능상 매우 안 좋음. 연관된 모든 애들을 Lazy Loading으로 다 가져옴.
+	/**
+	* V1. 엔티티 직접 노출
+	* - Hibernate5Module 모듈 등록, LAZY=null 처리
+	* - 양방향 관계 문제 발생 -> @JsonIgnore
+	*/
 	@GetMapping("/api/v1/simple-orders")
 	public List<Order> ordersV1(){
 		List<Order> all = orderRepository.findAllByString(new OrderSearch());
-//		for(Order order : all) {
-//			order.getMember().getName(); //Lazy 강제 초기화
-//			order.getDelivery().getAddress(); //Lazy 강제 초기화
-//		}
+		for(Order order : all) {
+			order.getMember().getName(); //Lazy 강제 초기화
+			order.getDelivery().getAddress(); //Lazy 강제 초기화
+		}
 		return all;
 	}
-	
-	// 기본에 충실했지만, Lazy loading으로 인해 너무 많은 쿼리가 발생한다는 문제점이 있음.
-	// N+1 문제가 발생. 1번의 쿼리 결과가 N개면 N번의 Lazy Loading이 발생. 여기서는 2N(회원, 배송) +1번 레이지 로딩이 발생.
-	// 착각하지 말것! EAGER로 바꿔도 똑같이 문제가 발생함. 
+	/**
+	* V2. 엔티티를 조회해서 DTO로 변환(fetch join 사용X)
+	* - 단점: 지연로딩으로 쿼리 N번 호출
+	*/
 	@GetMapping("/api/v2/simple-orders")
-	public OrderResult<List<SimpleOrderDto>> ordersV2(){
+	public OrderResult<List<OrderSimpleQueryDto>> ordersV2(){
 		List<Order> orders = orderRepository.findAllByString(new OrderSearch());
-		List<SimpleOrderDto> orderDto = orders.stream().map(o -> new SimpleOrderDto(o)) 	//SimpleOrderDto::new
+		List<OrderSimpleQueryDto> orderDto = orders.stream().map(o -> new OrderSimpleQueryDto(o)) 	//OrderSimpleQueryDto::new
 						.collect(Collectors.toList());
 		
-		return new OrderResult<List<SimpleOrderDto>>(orderDto);
+		return new OrderResult<List<OrderSimpleQueryDto>>(orderDto);
 	}
 	
-	//fetch join을 사용한다. Order를 가져올 때, Member와 Delivery를 join을 이용해서 한 번에 가져옴. 따라서 쿼리는 1개만 발생!
+	/**
+	* V3. 엔티티를 조회해서 DTO로 변환(fetch join 사용O)
+	* - fetch join으로 쿼리 1번 호출
+	* 단점 : select 절에 불필요한 데이터가 포함되기 때문에 네트워크 트래픽이 조금 더 높음.
+	* 장점 : 재활용성이 높음. 다른 API에서도 사용할 수 있음.
+	*/
 	@GetMapping("/api/v3/simple-orders")
-	public OrderResult<List<SimpleOrderDto>> ordersV3(){
+	public OrderResult<List<OrderSimpleQueryDto>> ordersV3(){
 		List<Order> orders = orderRepository.findAllWithMemberDelivery();
-		List<SimpleOrderDto> orderDto = orders.stream().map(SimpleOrderDto::new)
+		List<OrderSimpleQueryDto> orderDto = orders.stream().map(OrderSimpleQueryDto::new)
 		.collect(Collectors.toList());
 		
-		return new OrderResult<List<SimpleOrderDto>>(orderDto);
+		return new OrderResult<List<OrderSimpleQueryDto>>(orderDto);
+	}
+	
+	/**
+	* V4. JPA에서 DTO로 바로 조회
+	* - 쿼리 1번 호출
+	* - select 절에서 원하는 데이터만 선택해서 조회
+	* - Repository에서 DTO를 조회한다는 것 자체가 Repository의 기능에 맞지 않음.
+	* - 따라서 repository.order.simplequery 패키지를 두고 OrderSimpleQueryRepository를 새로 만드는 게 좋음.
+	* 장점 : 성능 최적화
+	* 단점 : DTO를 조회했기 때문에 재활용이 거의 불가능하고 JPA에서 관리하는 객체가 아님. 코드도 복잡.
+	*/
+	@GetMapping("/api/v4/simple-orders")
+	public OrderResult<List<OrderSimpleQueryDto>> ordersV4(){
+		return  new OrderResult<>(orderSimpleQueryRepository.findOrderDtos());
 	}
 	
 	@Data
@@ -78,21 +96,5 @@ public class OrderSimpleApiController {
 		private T data;
 	}
 	
-	@Data
-	static class SimpleOrderDto {
-		private Long orderId;
-		private String name;
-		private LocalDateTime orderDate;
-		private OrderStatus orderStatus;
-		private Address address;
-		
-		//Dto가 엔티티에 의존하는거는 ㄱㅊ
-		public SimpleOrderDto(Order order) {
-			orderId = order.getId();
-			name = order.getMember().getName();
-			orderDate = order.getOrderDate();
-			orderStatus = order.getStatus();
-			address = order.getDelivery().getAddress();
-		}
-	}
+
 }

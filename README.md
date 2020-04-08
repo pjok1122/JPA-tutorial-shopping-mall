@@ -6,21 +6,21 @@
   - spring-boot-starter-tomcat: 톰캣 (웹서버)
   - spring-webmvc: 스프링 웹 MVC
 
-
-- spring-boot-starter-thymeleaf: 타임리프 템플릿 엔진(View)
-- spring-boot-starter-data-jpa
+* spring-boot-starter-thymeleaf: 타임리프 템플릿 엔진(View)
+* spring-boot-starter-data-jpa
   - spring-boot-starter-aop
   - spring-boot-starter-jdbc
     - HikariCP 커넥션 풀 (부트 2.0 기본)
   - hibernate + JPA: 하이버네이트 + JPA
   - spring-data-jpa: 스프링 데이터 JPA
-- spring-boot-starter(공통): 스프링 부트 + 스프링 코어 + 로깅
+* spring-boot-starter(공통): 스프링 부트 + 스프링 코어 + 로깅
+
   - spring-boot
     - spring-core
   - spring-boot-starter-logging
     - logback, slf4j
 
-- spring-boot-starter-test
+* spring-boot-starter-test
   - junit : 테스트 프레임워크
   - mockito : 목 라이브러리
   - assertj : 테스트 코드를 편하게 작성할 수 있게 도와주는 라이브러리
@@ -32,21 +32,21 @@
 
 ```yml
 spring:
-    datasource:
-        url: jdbc:h2:tcp://localhost/~/jpashop
-        username: sa
-        password:
-        driver-class-name: org.h2.Driver
-    jpa:
-        hibernate:
-            ddl-auto: create
-        properties:
-            hibernate:
-                # show_sql: true
-                format_sql: true
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/jpashop
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        # show_sql: true
+        format_sql: true
 logging.level:
-    org.hibernate.SQL: debug
-    # org.hibernate.type: trace
+  org.hibernate.SQL: debug
+  # org.hibernate.type: trace
 ```
 
 - `org.hibernate.SQL` 는 logger를 통해 하이버네이트 실행 SQL을 남긴다.
@@ -78,13 +78,13 @@ logging.level:
 
 - `Entity`의 ID는 `ENTITY_ID`로 두는 것이 좋다.
 
-- 외래키가 있는 곳을 `연관관계의 주인(@JoinColumn)`으로 정한다. 
+- 외래키가 있는 곳을 `연관관계의 주인(@JoinColumn)`으로 정한다.
 
 - `@Getter`는 열어두고 `@Setter`는 닫는다. Setter 대신 생성 메서드를 만들어 사용하거나 생성자를 사용한다. Setter를 닫는 이유는 엔티티가 어디서 변경했는지 추적하기가 어려워지기 때문이다.
 
 - 양방향 연관관계의 경우 `연관관계 편의 메서드`를 만들어 사용한다.
 
-- `Enum 타입`은 반드시 `@Enumerated(EnumType.STRING)`을 사용한다. 
+- `Enum 타입`은 반드시 `@Enumerated(EnumType.STRING)`을 사용한다.
 
 - `@ManyToMany`는 `@OneToMany` `@ManyToOne`으로 풀어서 사용한다.
 
@@ -98,7 +98,7 @@ logging.level:
 
 ## EntityManager, Transaction
 
-- `EntityManager`는 `@PersistenceContext` 애노테이션을 붙이면 DI받을 수 있다. Spring boot에서는 `@Autowired`로도 주입받을 수 있도록 도와준다. 
+- `EntityManager`는 `@PersistenceContext` 애노테이션을 붙이면 DI받을 수 있다. Spring boot에서는 `@Autowired`로도 주입받을 수 있도록 도와준다.
 
 - 생성자 주입 방식은 `@Autowired`를 생략할 수 있으며, 테스트 시에 Mock객체를 주입해서 테스트할 수 있다는 장점이 있다. `ex) MemberService 객체를 생성자로 주입받자.`
 
@@ -111,7 +111,7 @@ public class MemberRepository{
 }
 ```
 
-- `@Transactional` 애노테이션은 트랜잭션 즉, 영속성 컨텍스트의 생명주기로 봐도 된다. `readOnly=true`로 설정할 경우, 데이터의 변경이 없는 읽기 전용 메서드로 간주된다. 영속성 컨텍스트를 `flush` 하지 않기 때문에 약간의 성능이 향상된다. 
+- `@Transactional` 애노테이션은 트랜잭션 즉, 영속성 컨텍스트의 생명주기로 봐도 된다. `readOnly=true`로 설정할 경우, 데이터의 변경이 없는 읽기 전용 메서드로 간주된다. 영속성 컨텍스트를 `flush` 하지 않기 때문에 약간의 성능이 향상된다.
 
 <br><hr>
 
@@ -119,7 +119,7 @@ public class MemberRepository{
 
 - 회원 가입 시에 이미 가입된 유저인지 아닌지를 검증한다고 반드시 안전한 것은 아니다. 멀티 쓰레드 상황을 고려해서 유일해야 하는 컬럼에는 `UNIQUE` 제약조건을 반드시 걸어놓는 것이 좋다.
 
-- 객체를 검증할 때는 `BindingResult` 객체와 함께 사용하는 것이 좋다. 
+- 객체를 검증할 때는 `BindingResult` 객체와 함께 사용하는 것이 좋다.
 
 <br><hr>
 
@@ -243,7 +243,6 @@ public int getTotalPrice() {
 ```
 
 - 실무에서는 `주문`에 전체 가격 필드를 두는 방식을 더 많이 사용한다.
-
 
 <br><hr>
 
@@ -383,12 +382,13 @@ public String orderList(
 - `${T(jpabook.jpashop.domain.OrderStatus).values()}` 객체를 접근하는 방법인 것 같다.
 
 ```html
-<option th:each="status : ${T(jpabook.jpashop.domain.OrderStatus).values()}"
-        th:value="${status}"
-        th:text="${status}">option
+<option
+  th:each="status : ${T(jpabook.jpashop.domain.OrderStatus).values()}"
+  th:value="${status}"
+  th:text="${status}"
+  >option
 </option>
 ```
-
 
 - 객체가 null인지 아닌지 판단하는 방법으로 (.)을 제공한다. 아래 예시에서는 address가 null이면 그 이상 추적하지 않는다.
 
@@ -451,25 +451,25 @@ void update(Item item) { //item: 파리미터로 넘어온 준영속 상태의 �
 **엔티티를 변경할 때에는 다음과 같은 방법으로 항상 변경 감지를 사용한다.**
 
 1. 컨트롤러에서 어설프게 엔티티를 생성하지 말자.
-    - 컨트롤러에서 생성한 엔티티는 영속성 컨텍스트의 관리 대상이 아니다. 하지만 서비스 계층에서는 이를 알기가 어렵다.
+   - 컨트롤러에서 생성한 엔티티는 영속성 컨텍스트의 관리 대상이 아니다. 하지만 서비스 계층에서는 이를 알기가 어렵다.
 2. 트랜잭션이 있는 서비스 계층에 식별자(id)와 변경할 데이터를 명확하게 전달하자. (파라미터 or DTO)
 3. 트랜잭션이 있는 서비스 계층에서 영속 엔티티를 조회하고, 엔티티의 데이터를 직접 변경하자.
 4. 트랜잭션의 커밋 시점에 변경 감지가 실행된다.
 
 <br><hr>
 
-# JPA 연습 프로젝트 - API 설계 및 성능 최적화
+# API 설계 및 성능 최적화
 
 ## 회원 생성 API
 
-**V1. 회원 생성 API**
+**V1. 회원 생성 API : 엔티티를 RequestBody에 직접 매핑**
 
 ```java
 @PostMapping("/api/v1/members")
 public CreateMemberResponse saveMemberV1(@RequestBody @Valid Member member) {
 	Long id = memberService.join(member);
 	return new CreateMemberResponse(id);
-} 
+}
 
 @Data
 @AllArgsConstructor
@@ -478,36 +478,36 @@ static class CreateMemberResponse {
 }
 ```
 
-1. 이 API는 엔티티를 매개변수로 넘겨주고 있다. 프레젠테이션 계층에 대한 검증을 엔티티에서 처리하고 있기 때문에 엔티티 자체가 굉장히 복잡해질 수 있다. 가급적이면 프레젠테이션 계층의 로직을 엔티티와 분리해서 사용하는 것이 좋다. 엔티티는 여러 계층에서 사용하기 때문에 사소한 수정에도 많은 사이드 이펙트가 발생할 가능성이 있기 때문이다.
+1. 이 API는 엔티티를 매개변수로 넘겨주고 있다. 프레젠테이션 계층에 대한 검증을 엔티티에서 처리하고 있기 때문에 엔티티 자체가 굉장히 복잡해질 수 있다. **가급적이면 프레젠테이션 계층의 로직을 엔티티와 분리해서 사용하는 것이 좋다.** 엔티티는 여러 계층에서 사용하기 때문에 사소한 수정에도 많은 사이드 이펙트가 발생할 가능성이 있기 때문이다.
 
-2. 엔티티를 매개변수로 받을 경우 엔티티의 멤버변수가 바뀌거나 했을 때, API의 스펙자체가 바뀌어버릴 수 있다. 예를 들어, name이라는 필드가 username 이라는 필드명으로 바뀌었다면 API 스펙 자체를 변경해야 한다.
+2. **엔티티를 매개변수로 받을 경우 엔티티의 멤버변수가 바뀌거나 했을 때, API의 스펙자체가 바뀌어버릴 수 있다.** 예를 들어, name이라는 필드가 username 이라는 필드명으로 바뀌었다면 API 스펙 자체를 변경해야 한다.
 
 3. API의 반환 타입도 별도의 객체로 정의해서 사용하는 것이 API의 스펙 변경에 대응하기가 쉽다. `CreateMemberResponse`는 `MemberApiController`에서만 사용하므로 내부 클래스로 정의해서 사용하는 것이 더 편리하고 정리하기 쉽다.
 
 <br>
 
-**V2. 회원생성 API**
+**V2. 회원생성 API : DTO를 RequestBody에 매핑**
 
 ```java
 public MemberApiController{
-    
+
     ...
 
     @PostMapping("/api/v2/members")
     public CreateMemberResponse saveMemberV2(@RequestBody @Valid CreateMemberRequest request) {
         Member member = new Member();
         member.setName(request.getName());
-        
+
         Long id = memberService.join(member);
         return new CreateMemberResponse(id);
     }
-    
+
     @Data
     static class CreateMemberRequest{
         @NotEmpty
         private String name;
     }
-    
+
     @Data
     @AllArgsConstructor
     static class CreateMemberResponse {
@@ -569,7 +569,7 @@ static class UpdateMemberRequest{
 
 ## 회원 조회
 
-**V1. 회원조회 API**
+**V1. 회원조회 API: 응답 값으로 엔티티를 직접 외부에 노출**
 
 ```java
 @GetMapping("/api/v1/members")
@@ -578,7 +578,7 @@ public List<Member> membersV1(){
 }
 ```
 
-가장 단순한 조회 API이며, 문제점 또한 아주 많다.
+가장 단순한 조회 API이며, 엔티티를 반환하고 있으니 당연히 문제가 많다.
 
 1. 먼저, 반환형에 `Member` 엔티티가 포함되어있으므로 엔티티의 정보가 그대로 노출되는 문제가 생긴다. `@JsonIgnore`를 이용해서 불필요한 데이터가 노출되지 않도록 설정할 수 있다. 이는 프레젠테이션 로직이 엔티티에 포함되는 문제도 있지만 더 심각한 문제가 있다. `A`라는 API에서는 필요로 하는 필드를 `B`라는 필드에서는 노출하지 말아야 한다면 어떡할까? 그냥 답이 없다. 따라서 반환형에 `Member`라는 엔티티를 노출하지말고 `Dto`를 만들어두는 것이 좋다.
 
@@ -586,7 +586,7 @@ public List<Member> membersV1(){
 
 3. 반환형 자체가 `List`이므로 Json으로 전달받았을 때에도, `[{}, {}, {}]`와 같은 형태로 전달된다. 따라서 API 요구사항이 바뀌어, 몇 개의 데이터가 조회했는지를 추가해야 한다고 해보자. 현재 `Generic`으로 `Member`만을 받고있기 때문에 데이터의 개수를 추가할 수 있는 공간이 없다. 따라서 우리는 `{ count : 5, data:[{},{}]}`와 같은 형태로 Json을 만드는 게 좋다.
 
-**V2. 회원조회 API**
+**V2. 회원조회 API: 응답 값으로 엔티티가 아닌 별도의 DTO 사용**
 
 ```java
 @GetMapping("/api/v2/members")
@@ -596,11 +596,10 @@ public Result memberV2() {
     List<MemberDto> collect = findMembers.stream()
                 .map(m -> new MemberDto(m.getName()))
                 .collect(Collectors.toList());
-    
+
     return new Result(collect.size(), collect);
 }
 
-//T타입을 써야 확장성이 좋다고 함.
 @Data
 @AllArgsConstructor
 static class Result<T>{
@@ -617,4 +616,159 @@ static class MemberDto {
 
 1. 영속성 컨텍스트로부터 조회해온 `Member` 엔티티를 `MemberDto`로 변환하고 있는 모습을 볼 수 있다. `Member`엔티티를 `MemberDto`로 변환할 때, `자바8` 의 stream을 이용하면 다소 편하게 구현이 가능하다.
 
-2. 리턴타입을 정의할 때 `Result<T>`를 이용하자.
+2. 리턴타입은 `Result`라는 클래스로 컬렉션을 감싸서 향후 필요한 필드를 추가할 수 있다.
+
+<br><hr>
+
+# API 개발과 성능 최적화 - 고급
+
+## 주문 조회
+
+주문 + 배송정보 + 회원을 조회하는 API를 생성한다. `xToOne` 관계를 어떻게 최적화 할 수 있는지 알아보자.
+
+- Order
+- Order -> Member
+- Order -> Delivery
+
+**간단한 주문 조회 V1: 엔티티를 직접 노출**
+
+```java
+@RestController
+@RequiredArgsConstructor
+public class OrderSimpleApiController{
+
+    private final OrderRepository orderRepository;
+
+    @GetMapping("/api/v1/simple-orders")
+	public List<Order> ordersV1(){
+        List<Order> all = orderRepository.findAllByString(new OrderSearch());
+        for(Order order : all) {
+			order.getMember().getName();        //Lazy 강제 초기화
+			order.getDelivery().getAddress();   //Lazy 강제 초기화
+		}
+		return all;
+	}
+}
+```
+
+1. 엔티티를 직접 노출하고 있기 때문에 `order`->`member`->`order`->`member`를 반복적으로 호출하는 무한루프에 빠지게 된다. 이 문제는 `@JsonIgnore`를 넣어 막을 수 있다. 양방향 연관관계의 경우에는 반드시 한쪽에 `@JsonIgnore`를 넣어 루프를 끊어줘야 한다.
+
+2. 무한루프 문제를 `@JsonIgnore`로 해결하고 나면 `org.hibernate.proxy.pojo.bytebuddy...`로 시작하는 예외가 발생한다. 하이버네이트는 지연로딩일 때, `Member member = new ByteBuddyInterceptor()`처럼 프록시 객체를 삽입해두지만, `Jackson` 라이브러리는 이를 알지 못한다. `Jackson` 라이브러리는 프록시 객체를 `Json`으로 변환을 시도하지만, 실패하게 되고 발생하는 예외다. 이 문제를 처리하기 위해서는 `hibernate5Module`을 사용하면 된다.
+
+3. `com.fasterxml.jackson.datatype:jackson-datatype-hibernate5`를 gradle에 추가하고 `hibernate5Module`을 반환하는 `@Bean`을 하나 생성한다. `hibernate5Module`이 빈으로 등록되면 초기화된 프록시 객체는 노출이 되지만, 초기화되지 않은 프록시는 null값을 가지게 된다.
+
+4. 현재 Lazy loading으로 설정되어있으므로 `member`, `delivery` 또한 null로 반환된다. 페치전략을 EAGER로 바꿔서 가져오도록 할 수도 있고, 강제 초기화를 이용해서 초기화를 해둘 수도 있다. 위의 예제는 강제 초기화를 하는 예제이다.
+
+V1은 절대로 만들어선 안되는 API다. **잘못만들면 이렇게나 복잡해지는구나** 생각하고 넘어가자.
+
+**간단한 주문 조회 V2: 엔티티를 DTO로 변환**
+
+```java
+public class OrderSimpleApiController{
+
+    @GetMapping("/api/v2/simple-orders")
+    public OrderResult<List<OrderSimpleQueryDto>> ordersV2(){
+        List<Order> orders = orderRepository.findAllByString(new OrderSearch()); //전체 조회
+        List<OrderSimpleQueryDto> orderDto = orders.stream().map(o -> new OrderSimpleQueryDto(o)) 	//OrderSimpleQueryDto::new
+                        .collect(Collectors.toList());
+
+        return new OrderResult<List<OrderSimpleQueryDto>>(orderDto);
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class OrderResult<T>{
+    private T data;
+    }
+}
+```
+
+1. `Repository`로부터 조회된 엔티티들을 `OrderSimpleQueryDto`로 변환해서 return 하는 모습이다. 앞에서 `Collection` 자체를 반환하면 `Json`형식이 깨지기 때문에 `OrderResult<T>`로 컬렉션을 감싸준 기본에 충실한 API라고 할 수 있다.
+
+2. 이 API의 단점은 `성능`이다. `orderRepository.findAll()`은 JPQL이 SQL로 그대로 번역돼서 `Order`만 조회하는 쿼리가 발생한다. 조회된 쿼리가 N개였다면, 각각의 쿼리에 대해서 `Member`와 `Delivery`를 조회해야 하기 때문에 `2N+1` 번의 쿼리가 발생한다. 물론 영속성 컨텍스트에 데이터가 있는 경우에는 쿼리가 발생하지 않기 때문에 실제 쿼리는 조금 더 적게 나갈 수는 있으나, 최악의 상황에는 `2N+1`번의 쿼리가 발생한다.
+
+3. 참고로 페치전략을 `EAGER`로 바꾸면 `JOIN` 쿼리가 발생해서 성능 최적화가 되지 않을까? 생각할 수 있지만 전혀 아니다. 하지만 페치전략을 `EAGER`로 바꿨다 하더라도 `Order`에 대한 쿼리가 발생하고, `Member`와 `Delivery`에 대한 쿼리가 따로 발생한다. 물론 JPA가 내부적으로 더 복잡한 쿼리를 만들어 최적화할 수는 있지만, 이는 개발자가 예측하기가 너무나 힘들기 때문에 유지보수에서도 좋지 않다.
+
+<br>
+
+**간단한 주문 조회 V3: 엔티티를 DTO로 변환, 페치 조인 최적화**
+
+```java
+@GetMapping("/api/v3/simple-orders")
+public OrderResult<List<OrderSimpleQueryDto>> ordersV3(){
+    List<Order> orders = orderRepository.findAllWithMemberDelivery();
+    List<OrderSimpleQueryDto> orderDto = orders.stream().map(OrderSimpleQueryDto::new)
+    .collect(Collectors.toList());
+
+    return new OrderResult<>(orderDto);
+}
+
+
+public class OrderRepository{
+	public List<Order> findAllWithMemberDelivery() {
+		return em.createQuery(
+				"select o from Order o" +
+				" join fetch o.member m"+
+				" join fetch o.delivery d", Order.class)
+		.getResultList();
+    }
+}
+```
+
+1. 페치 조인으로 `Order`를 조회할 때, `Member`와 `Delivery`를 한 번에 조회했기 때문에 쿼리는 1번만 발생한다. 조회된 결과를 단순히 Dto로 변환해서 클래스로 감싼 후 반환한 것이 전부다. 아주 심플하게 성능을 최적화했다고 볼 수 있다.
+
+<br>
+
+**간단한 주문 조회 V4: JPA에서 DTO로 바로 조회**
+
+```java
+@GetMapping("/api/v4/simple-orders")
+public OrderResult<List<OrderSimpleQueryDto>> ordersV4(){
+    return  new OrderResult<>(orderSimpleQueryRepository.findOrderDtos());
+}
+
+
+public class OrderSimpleQueryRepository {
+
+    private final EntityManager em;
+
+    public List<OrderSimpleQueryDto> findOrderDtos() {
+        return em.createQuery(
+                "select new jpabook.jpashop.repository.order.simplequery.OrderSimpleQueryDto(o.id, m.name, o.orderDate, o.status, d.address) from Order o" +
+                " join o.member m" +
+                " join o.delivery d", OrderSimpleQueryDto.class
+                )
+        .getResultList();
+    }
+}
+
+@Data
+public class OrderSimpleQueryDto {
+	private Long orderId;
+	private String name;
+	private LocalDateTime orderDate;
+	private OrderStatus orderStatus;
+	private Address address;
+
+	//Dto가 엔티티에 의존하는거는 ㄱㅊ
+	public OrderSimpleQueryDto(Order order) {
+		orderId = order.getId();
+		name = order.getMember().getName();
+		orderDate = order.getOrderDate();
+		orderStatus = order.getStatus();
+		address = order.getDelivery().getAddress();
+	}
+
+	public OrderSimpleQueryDto(Long orderId, String name, LocalDateTime orderDate, OrderStatus orderStatus, Address address) {
+		this.orderId = orderId;
+		this.name = name;
+		this.orderDate = orderDate;
+		this.orderStatus = orderStatus;
+		this.address = address;
+	}
+}
+```
+
+1. JPQL의 join과 new를 이용해서 JPA에서 DTO로 바로 조회했다. 쿼리는 1번만 발생하며 `SELECT` 절에 불필요한 컬럼이 추가되지 않기 때문에 V3에 비해 약간의 성능 향상을 기대할 수 있다. 하지만, DTO를 바로 조회했기 때문에 해당 메서드 `findOrderDtos()`는 재활용성이 매우 낮다.
+
+2. `Repository`는 엔티티를 조회하는 기능을 의미하는데, `findOrderDtos()`는 DTO를 조회하고 있으므로 `Repository`의 기능과 맞지 않다. 따라서 `repository.order.simplequery`와 같은 별도의 하위패키지를 구성하고 그 패키지 밑에 `OrderSimpleQueryRepository` 와 같이 별도의 객체를 두는 것이 좋다.
