@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
  *
  */
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class InitDb {
 	

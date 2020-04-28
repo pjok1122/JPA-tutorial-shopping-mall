@@ -87,7 +87,7 @@ public class OrderServiceTest {
 		Order getOrder = orderRepository.findOne(orderId);
 		
 		//주문 상태는 CACNLE이 되어야 한다.
-		assertThat(OrderStatus.CANCLE).isEqualTo(getOrder.getStatus());
+		assertThat(OrderStatus.CANCEL).isEqualTo(getOrder.getStatus());
 		
 		//주문이 취소된 상품은 그만큼 재고가 증가해야 한다.
 		assertThat(item.getStockQuantity()).isEqualTo(10);

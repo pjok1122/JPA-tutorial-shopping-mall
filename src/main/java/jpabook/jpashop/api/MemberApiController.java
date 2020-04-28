@@ -114,4 +114,23 @@ public class MemberApiController {
 	static class CreateMemberResponse {
 		private Long id;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
