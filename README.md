@@ -1171,7 +1171,7 @@ _cf) DTO 방식으로 조회해야 하는 경우라면 V4, V5가 선호되며, �
 
 JPA가 나오기 전 Hibernate에서 `Open Session In View`를 줄여서 OSIV라고 부르기 시작했다. JPA가 개발되고 `Open EntityManager In View`라고 이름을 붙였지만 관례상 여전히 OSIV라고 한다.
 
-![OSIV_on](../images/OSIV_on.png)
+![OSIV_on](./images/OSIV_on.png)
 
 - `spring.jpa.open-in-view = true`
 
@@ -1179,7 +1179,7 @@ Spring Data JPA는 default 값으로 OSIV를 true로 설정한다. OSIV가 켜�
 
 단점으로는 너무 오랫동안 데이터베이스 커넥션을 쥐고있다는 점이다. 뷰 템플릿을 만들고 리스폰스를 반환할 때까지 데이터베이스 커넥션을 쥐고 있기 때문에 결국은 커넥션풀에 커넥션이 모자르는 현상까지 이어질 수 있다. 심지어 컨트롤러에서 다른 외부 API를 호출하는 경우, 외부 API가 끝날 때까지 커넥션을 쥐고 있게 된다. 따라서 트래픽이 많다면 OSIV를 꺼두는 것이 좋다.
 
-![OSIV_off](../images/OSIV_off.png)
+![OSIV_off](./images/OSIV_off.png)
 
 OSIV를 끄면 트랜잭션을 종료할 때 영속성 컨텍스트를 닫고 커넥션을 반환하기 때문에 리소스를 낭비하지 않는다. 하지만 OSIV를 끄면 모든 지연로딩을 트랜잭션 안에서 처리해야 한다. 컨트롤러와 뷰 템플릿에서 지연로딩이 불가능하기 때문에 Service 계층의 코드가 뷰 템플릿에 의존적이게 될 수 있다.
 
